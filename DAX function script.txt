@@ -1,0 +1,86 @@
+Measures Tabel:
+#Measures = GENERATESERIES(1,1,1)
+
+-----------------------------------------
+%Sales = DIVIDE([TotalSalesAmount],CALCULATE(SUM(fact_InternetSales[SalesAmount]),ALL(dim_SalesTeritory[SalesTerritoryCountry])))*100
+Map Titel:
+MapTitle = "Total Products Sold" & IF(ISFILTERED(dim_SalesTeritory[SalesTerritoryCountry]), " in " & VALUES(dim_SalesTeritory[SalesTerritoryCountry]), " Worldwide")
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PreviousOneMonth = CALCULATE(SUM(fact_InternetSales[SalesAmount]),DATEADD(dim_Date[Date],-1,MONTH))
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PreviousThreeMonths = CALCULATE([TotalSalesAmount],DATEADD(dim_Date[Date],-3,MONTH))
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PreviousSixMonths = CALCULATE([TotalSalesAmount],DATEADD(dim_Date[Date],-6,MONTH))
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ProductsSold = COUNTROWS(fact_InternetSales)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+SalesAmountSelectedCurrency = 
+
+var SalesAmount = SUM(fact_InternetSales[SalesAmount])
+
+var USDollars = CALCULATE(SalesAmount,dim_Currency[CurrencyAlternateKey]="USD")
+
+var CADDollars = CALCULATE(SalesAmount,dim_Currency[CurrencyAlternateKey]="CAD")
+
+var GBP = CALCULATE(SalesAmount,dim_Currency[CurrencyAlternateKey]="GBP")
+
+var AUD = CALCULATE(SalesAmount,dim_Currency[CurrencyAlternateKey]="AUD")
+
+var DEM = CALCULATE(SalesAmount,dim_Currency[CurrencyAlternateKey]="DEM")
+
+var FRF = CALCULATE(SalesAmount, dim_Currency[CurrencyAlternateKey]="FRF")
+
+RETURN
+
+IF(SELECTEDVALUE(dim_Currency[CurrencyAlternateKey])="USD", USDollars,
+IF(SELECTEDVALUE(dim_Currency[CurrencyAlternateKey])="CAD", CADDollars,
+IF(SELECTEDVALUE(dim_Currency[CurrencyAlternateKey])="GBP", GBP,
+IF(SELECTEDVALUE(dim_Currency[CurrencyAlternateKey])="AUD", AUD,
+IF(SELECTEDVALUE(dim_Currency[CurrencyAlternateKey])="DEM", DEM,
+IF(SELECTEDVALUE(dim_Currency[CurrencyAlternateKey])="FRF", FRF,
+"No Currency Selected"))))))
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+SalesLastMonth = CALCULATE([TotalSalesAmount],DATEADD(dim_Date[Date],-1,MONTH))
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+TitleBar = 
+
+var CurrencySelected = 
+IF(ISFILTERED(dim_Currency[CurrencyAlternateKey]),VALUES(dim_Currency[CurrencyAlternateKey]), BLANK())
+
+RETURN
+
+IF(ISFILTERED(dim_Currency[CurrencyAlternateKey]), "Sales Amount in " &
+CurrencySelected & " vs All Currencies", "Please, Select Currency from the Dropdown Menu")
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+TotalSalesAmount = SUM(fact_InternetSales[SalesAmount])
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+TotalSalesAmountALL = CALCULATE([TotalSalesAmount],ALL(dim_Currency))
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+dim_Date = ADDCOLUMNS(
+    CALENDAR(MIN(fact_InternetSales[ShipDate]), MAX(fact_InternetSales[ShipDate])),
+    "Year", YEAR([Date]),
+    "Month", MONTH([Date]),
+    "Month Name", FORMAT([Date], "MMMM"),
+    "Day of Week", FORMAT([Date], "DDDD"),
+    "Quarter", FORMAT([Date], "Q"),
+    "YearQuarter", FORMAT([Date], "YYYY")&"/Q"&FORMAT([Date], "Q"))
+
+-------------------------------------------------------------------------------------------------------------------------------------------
